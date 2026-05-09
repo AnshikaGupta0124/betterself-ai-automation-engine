@@ -1,0 +1,1552 @@
+{
+  "name": "BetterSelf- TG Workflow2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        0
+      ],
+      "id": "c83d84db-ad09-455d-8325-00e69b000f53",
+      "name": "Telegram Listener",
+      "webhookId": "e94dd6ec-940e-45b5-ad96-092608743762",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "efc7fbcb-4932-4891-83ff-6d09db6ff635",
+              "leftValue": "={{ $json.callback_query !== undefined ? \"yes\" : \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "d05570e1-45d4-447f-b6da-43cca54d0eda",
+      "name": "Is Button Tap?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e5e5539f-b348-47f5-8320-90ff127c41c2",
+              "leftValue": "={{ $('Telegram Listener').first().json.callback_query.data }}",
+              "rightValue": "energy_",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        -432
+      ],
+      "id": "b3116e22-67b8-43be-96b5-4c3a2274b455",
+      "name": "Is Energy Button?"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"telegram_id\": \"{{ $json.message.from.id || $json.callback_query.from.id }}\",\n  \"first_name\": \"{{ $json.message.from.first_name || $json.callback_query.from.first_name }}\",\n  \"message_text\": \"{{ $json.message.text || $json.callback_query.data }}\",\n  \"chat_id\": \"{{ $json.message.chat.id || $json.callback_query.message.chat.id }}\",\n  \"date\": \"{{ $json.message.date || $json.callback_query.message.date }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        176,
+        16
+      ],
+      "id": "472b23b3-6cdc-4a6f-9d76-b0b56b15907d",
+      "name": "Extract Message Text"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_USERS_TABLE_ID"
+        },
+        "filterByFormula": "={telegram_id} = \"{{ $json.telegram_id }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        16
+      ],
+      "id": "f43d21f2-dc69-4d7b-9f22-d82077b5ee3c",
+      "name": "Fetch User Profile",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "259e7875-76a4-4c4f-917f-47dfad8cfd66",
+              "leftValue": "={{ $('Fetch User Profile').first().json.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        16
+      ],
+      "id": "311e1ac4-4c9f-42da-ba3e-ad2562cc1ac9",
+      "name": "User Exists?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "16190a85-7c39-47ab-aedb-ce9fd678c688",
+              "leftValue": "={{ $('Fetch User Profile').first().json.fields.status }}",
+              "rightValue": "active",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        192
+      ],
+      "id": "13169d63-1006-40f9-b0a7-6c654aafd1b6",
+      "name": "Is User Active?"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_USERS_TABLE_ID"
+        },
+        "filterByFormula": "={{ $('Telegram Listener').first().json.callback_query.from.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -736
+      ],
+      "id": "d2867d9f-a8e6-40a6-b138-f19de33bddfb",
+      "name": "Fetch User Profile (Energy)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.trychroma.com/api/v2/tenants/YOUR_CHROMADB_TENANT_ID/databases/betterself/collections/YOUR_CHROMADB_COLLECTION_ID/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-chroma-token",
+              "value": "YOUR_CHROMADB_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_embeddings\": [[0.1, 0.2, 0.3]],\n  \"n_results\": 3\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        384,
+        -736
+      ],
+      "id": "331f1e0c-a64b-4ced-a7c9-1c56ef164a51",
+      "name": "Fetch Yesterday Log"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_DAILY_LOGS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily_Logs",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_DAILY_LOGS_TABLE_ID"
+        },
+        "filterByFormula": "=AND(\n  {telegram_id} = '{{ String($('Telegram Listener').first().json.callback_query.from.id) }}',\n  {completion_status} = ''\n)",
+        "returnAll": false,
+        "limit": 1,
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Date",
+              "direction": "desc"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        -416
+      ],
+      "id": "f920b312-3f06-4f7e-bf4c-6f5b0944891b",
+      "name": "Fetch Today Log",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are BetterSelf, a personal productivity coach. Generate a short, personalized morning plan. Always address the user by their first name naturally. Keep it warm, encouraging and concise. Adjust the plan intensity based on energy level — give light, easy tasks for low energy, moderate tasks for okay energy, and ambitious stretch goals for high energy.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"My name: {{ $('Fetch User Profile (Energy)').first().json.fields.first_name }}. My goals: {{ $('Fetch User Profile (Energy)').first().json.fields.goals }}. My energy today: {{ $('Telegram Listener').first().json.callback_query.data === 'energy_high' ? 'High' : $('Telegram Listener').first().json.callback_query.data === 'energy_okay' ? 'Okay' : 'Low' }}. My recent context: {{ $('Fetch Yesterday Log').first().json.documents[0] }}. Give me a focused plan for today.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        848,
+        -736
+      ],
+      "id": "a7f2155c-939a-4725-998c-6e455a2d8328",
+      "name": "Generate Morning Plan",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are BetterSelf, a personal productivity coach. The user's name is {{ $('Fetch User Profile').first().json.fields.first_name }}. Always address them by their first name naturally in every response. If the user's message looks like a list of goals (e.g. lose weight, focus, sleep better), reply ONLY with: 'Got it {{ $('Fetch User Profile').first().json.fields.first_name }}! Your goals have been saved. I'll send you a personalized plan every morning at 8am 🚀'. Otherwise respond warmly and naturally as a helpful personal coach.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"My name is {{ $('Fetch User Profile').first().json.fields.first_name }}. {{ $('Extract Message Text').item.json.message_text }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1152,
+        -16
+      ],
+      "id": "6da8bf4c-9191-478f-928e-5fde08ab35a8",
+      "name": "Generate Chat Reply"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are BetterSelf, a personal productivity coach. Generate a single short encouraging message (max 2 sentences) based on the user's daily status. Be warm, personal and motivating. No markdown formatting.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User's name: {{ $('Telegram Listener').first().json.callback_query.from.first_name }}. Today's status: {{ $('Telegram Listener').first().json.callback_query.data === 'Done' ? 'Completed their tasks ✅' : $('Telegram Listener').first().json.callback_query.data === 'Skipped' ? 'Skipped today ❌' : 'Taking a rest day 😴' }}. Generate a fitting 1-2 sentence response addressing them by name.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        896,
+        -416
+      ],
+      "id": "7032f03d-1ad5-47e2-9752-66e6cb68cefa",
+      "name": "Generate Confirmation Message"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Listener').first().json.message?.chat?.id || $('Telegram Listener').first().json.callback_query?.message?.chat?.id }}",
+        "text": "={{ $('Generate Chat Reply').first().json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        -16
+      ],
+      "id": "a4587d7c-e1d7-4273-83f1-c032cce1a7c7",
+      "name": "Send Morning Plan",
+      "webhookId": "14989b06-7ed2-47dc-8d83-c6c8bd2b47b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Text').item.json.chat_id }}",
+        "text": "=Hey {{ $('Extract Message Text').item.json.first_name }}! 👋 Welcome to BetterSelf!  I'm your personal productivity coach. To create your personalized daily plan, I need to know a bit about you.  What are your main goals?  (e.g. lose weight, build muscle, improve focus, sleep better)",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        480
+      ],
+      "id": "ef53caf6-922b-4325-a110-930f9b55d5cc",
+      "name": "Send Welcome Message",
+      "webhookId": "8e92240a-eed6-41ff-8b1e-e32211fb2b86",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Text').item.json.chat_id }}",
+        "text": "Goals saved! 🎯 I'll send you a personalized plan every morning at 8am 🚀",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        272
+      ],
+      "id": "f2d2b5cc-9a2f-4e28-8805-ab4ddefb9769",
+      "name": "Send Goals Saved",
+      "webhookId": "0596c98c-b4b2-4a6a-86ac-b01239abe1c3",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Listener').first().json.callback_query.message.chat.id }}",
+        "text": "={{ $('Generate Confirmation Message').first().json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        -416
+      ],
+      "id": "6f50e488-3276-4218-9841-5d640262f186",
+      "name": "Send Completion Confirmation",
+      "webhookId": "99a9939e-f8f5-4942-a357-6801e8c64323",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Listener').first().json.callback_query.from.id }}",
+        "text": "={{ $('Generate Morning Plan').first().json.choices[0].message.content.replace(/[*_`\\[\\]()#]/g, '') }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Done",
+                    "additionalFields": {
+                      "callback_data": "Done"
+                    }
+                  },
+                  {
+                    "text": "❌ Skipped",
+                    "additionalFields": {
+                      "callback_data": "Skipped"
+                    }
+                  },
+                  {
+                    "text": "😴 Rest",
+                    "additionalFields": {
+                      "callback_data": "Rest"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -736
+      ],
+      "id": "032f2189-9048-41fb-9312-3d588c3a5a65",
+      "name": "Send Morning Plan (Energy)",
+      "webhookId": "318a7738-acf9-4261-8315-657795c02b67",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_USERS_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Extract Message Text').item.json.telegram_id }}",
+            "timezone": "Asia/Kolkata",
+            "first_name": "={{ $('Extract Message Text').item.json.first_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "goals",
+              "displayName": "goals",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timezone",
+              "displayName": "timezone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cycle_phase",
+              "displayName": "cycle_phase",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "onboarding_goals",
+                  "value": "onboarding_goals"
+                },
+                {
+                  "name": "onboarding_phase",
+                  "value": "onboarding_phase"
+                },
+                {
+                  "name": "active",
+                  "value": "active"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        -16
+      ],
+      "id": "23a89774-a117-4935-b892-85be26fffd26",
+      "name": "Save Daily Log",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_USERS_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Extract Message Text').item.json.telegram_id }}",
+            "timezone": "Asia/Kolkata",
+            "first_name": "={{ $('Extract Message Text').item.json.first_name }}",
+            "status": "onboarding_goals"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "goals",
+              "displayName": "goals",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timezone",
+              "displayName": "timezone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cycle_phase",
+              "displayName": "cycle_phase",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "onboarding_goals",
+                  "value": "onboarding_goals"
+                },
+                {
+                  "name": "onboarding_phase",
+                  "value": "onboarding_phase"
+                },
+                {
+                  "name": "active",
+                  "value": "active"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        480
+      ],
+      "id": "ae8d7180-4df6-4c0d-8197-39460ac7f0f1",
+      "name": "Create New User",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_DAILY_LOGS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily_Logs",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_DAILY_LOGS_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ String($('Telegram Listener').first().json.callback_query.from.id) }}",
+            "energy_level": "={{ $('Telegram Listener').first().json.callback_query.data === 'energy_high' ? 'High' : $('Telegram Listener').first().json.callback_query.data === 'energy_okay' ? 'Okay' : 'Low' }}",
+            "Date": "={{ $now.toISODate() }}",
+            "available_time": 0,
+            "tasks_completed": 0,
+            "tasks_total": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "energy_level",
+              "displayName": "energy_level",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Okay",
+                  "value": "Okay"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "available_time",
+              "displayName": "available_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "tasks_completed",
+              "displayName": "tasks_completed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "tasks_total",
+              "displayName": "tasks_total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "completion_status",
+              "displayName": "completion_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Skipped",
+                  "value": "Skipped"
+                },
+                {
+                  "name": "Rest",
+                  "value": "Rest"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        -736
+      ],
+      "id": "6ebcd74f-b422-48e0-adbe-96720acf48e4",
+      "name": "Save Energy Log",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_USERS_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Fetch User Profile').first().json.id }}",
+            "goals": "={{ $('Extract Message Text').item.json.message_text }}",
+            "status": "active"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "goals",
+              "displayName": "goals",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timezone",
+              "displayName": "timezone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "onboarding_goals",
+                  "value": "onboarding_goals"
+                },
+                {
+                  "name": "onboarding_phase",
+                  "value": "onboarding_phase"
+                },
+                {
+                  "name": "active",
+                  "value": "active"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        272
+      ],
+      "id": "c1683729-e429-4968-8128-20cc2a2a2903",
+      "name": "Save User Goals",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.trychroma.com/api/v2/tenants/YOUR_CHROMADB_TENANT_ID/databases/betterself/collections/YOUR_CHROMADB_COLLECTION_ID/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-chroma-token",
+              "value": "YOUR_CHROMADB_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"ids\": [\"{{ $('Telegram Listener').first().json.message.from.id.toString() }}\"],\n  \"embeddings\": [[0.1, 0.2, 0.3]],\n  \"documents\": [\"{{ $('Extract Message Text').first().json.message_text }}\"],\n  \"metadatas\": [{\"user_id\": \"{{ $('Telegram Listener').first().json.message.from.id.toString() }}\", \"timestamp\": \"{{ $now.toISO() }}\"}]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1888,
+        -16
+      ],
+      "id": "ddd2f7a2-8cdb-4abc-b292-3b8d50b673b4",
+      "name": "Save to Memory"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_DAILY_LOGS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily_Logs",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_DAILY_LOGS_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "completion_status": "={{ $('Telegram Listener').first().json.callback_query.data }}",
+            "telegram_id": "={{ String($('Telegram Listener').first().json.callback_query.from.id) }}",
+            "Date": "={{ $now.toISODate() }}"
+          },
+          "matchingColumns": [
+            "telegram_id",
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "energy_level",
+              "displayName": "energy_level",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Okay",
+                  "value": "Okay"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "available_time",
+              "displayName": "available_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "tasks_completed",
+              "displayName": "tasks_completed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "tasks_total",
+              "displayName": "tasks_total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "completion_status",
+              "displayName": "completion_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Skipped",
+                  "value": "Skipped"
+                },
+                {
+                  "name": "Rest",
+                  "value": "Rest"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -416
+      ],
+      "id": "99bd0fc7-d37d-4d35-8d76-35e6d5be8cc1",
+      "name": "Update Completion Status",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Listener": {
+      "main": [
+        [
+          {
+            "node": "Is Button Tap?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Button Tap?": {
+      "main": [
+        [
+          {
+            "node": "Is Energy Button?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Message Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Energy Button?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Yesterday Log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Today Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Text": {
+      "main": [
+        [
+          {
+            "node": "Fetch User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch User Profile": {
+      "main": [
+        [
+          {
+            "node": "User Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Exists?": {
+      "main": [
+        [
+          {
+            "node": "Is User Active?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is User Active?": {
+      "main": [
+        [
+          {
+            "node": "Generate Chat Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save User Goals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch User Profile (Energy)": {
+      "main": [
+        [
+          {
+            "node": "Generate Morning Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Yesterday Log": {
+      "main": [
+        [
+          {
+            "node": "Fetch User Profile (Energy)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Today Log": {
+      "main": [
+        [
+          {
+            "node": "Update Completion Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Morning Plan": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Plan (Energy)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Chat Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Confirmation Message": {
+      "main": [
+        [
+          {
+            "node": "Send Completion Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Morning Plan": {
+      "main": [
+        [
+          {
+            "node": "Save Daily Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Morning Plan (Energy)": {
+      "main": [
+        [
+          {
+            "node": "Save Energy Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Daily Log": {
+      "main": [
+        [
+          {
+            "node": "Save to Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New User": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save User Goals": {
+      "main": [
+        [
+          {
+            "node": "Send Goals Saved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Completion Status": {
+      "main": [
+        [
+          {
+            "node": "Generate Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a0b5fc3d-b95f-44a7-93e4-cec4accfefe2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d3f82dbede4c7cb77113adc1848daa0fdf12a36bbf26a6f116d621e7bb2fa287"
+  },
+  "id": "KeJ1tmIB92eQgKUM",
+  "tags": []
+}

@@ -1,0 +1,112 @@
+{
+  "name": "BetterSelf-Morning Plan Workflow 1",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "3a84cc68-eb6e-4e6c-930c-6c0e49888553",
+      "name": "8am Daily Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User"
+        },
+        "returnAll": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [208, 0],
+      "id": "62e8048c-b90c-45e4-9241-1da09b2a456e",
+      "name": "Fetch User Profile",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Fetch User Profile').first().json.fields.telegram_id }}",
+        "text": "=Good morning {{ $('Fetch User Profile').first().json.fields.first_name }}! 👋\n\nBefore I build your plan, how are you feeling today?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "⚡ High Energy",
+                    "additionalFields": {
+                      "callback_data": "energy_high"
+                    }
+                  },
+                  {
+                    "text": "😐 Okay",
+                    "additionalFields": {
+                      "callback_data": "energy_okay"
+                    }
+                  },
+                  {
+                    "text": "😴 Low Energy",
+                    "additionalFields": {
+                      "callback_data": "energy_low"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [416, 0],
+      "id": "a81d46b8-a507-4ac3-85bc-4995596122fb",
+      "name": "Ask Energy Level",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "8am Daily Trigger": {
+      "main": [[{"node": "Fetch User Profile", "type": "main", "index": 0}]]
+    },
+    "Fetch User Profile": {
+      "main": [[{"node": "Ask Energy Level", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

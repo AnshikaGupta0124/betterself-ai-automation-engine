@@ -1,0 +1,202 @@
+{
+  "name": "Weekly Report Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "ad520938-4ba3-4f1a-b82d-3d3abc3ecdd7",
+      "name": "Sunday 8pm Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_DAILY_LOGS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily_Logs"
+        },
+        "filterByFormula": "{telegram_id} = 'YOUR_TELEGRAM_ID'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [208, 0],
+      "id": "c0ebfd5e-9b6d-42e5-ad73-5df71d46b4ac",
+      "name": "Fetch Weekly Logs",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [416, 0],
+      "id": "d7bf29e5-eea4-4348-8982-aac74a8363e3",
+      "name": "Combine Weekly Logs"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_USERS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "User"
+        },
+        "filterByFormula": "{telegram_id} = 'YOUR_TELEGRAM_ID'",
+        "returnAll": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [624, 0],
+      "id": "65734c69-bb15-4407-a75f-47131e853ff4",
+      "name": "Fetch User Profile",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are BetterSelf, a personal productivity coach. Analyze the user's weekly logs and generate a warm, personalized weekly report. Focus only on the last 7 days. Structure it as: 1) Personal greeting with name 2) Weekly completion rate as a visual bar (e.g. ████░░ 67%) 3) Best day of the week 4) Energy pattern observation 5) One specific encouragement tied to their goals 6) One simple focus for next week. Keep it concise, warm and coaching. No markdown formatting.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User name: {{ $('Fetch User Profile').first().json.fields.first_name }}. Goals: {{ $('Fetch User Profile').first().json.fields.goals }}. Weekly logs: {{ $('Fetch Weekly Logs').all().map(r => r.json.fields.Date + ' | Energy: ' + r.json.fields.energy_level + ' | Status: ' + r.json.fields.completion_status).join(', ') }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [832, 0],
+      "id": "f3de358a-a0c1-42af-a09a-08d4b224b32b",
+      "name": "Generate Weekly Report"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_ID",
+        "text": "={{ $('Generate Weekly Report').first().json.choices[0].message.content.replace(/[*_`\\[\\]()]/g, '') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1040, 0],
+      "id": "cc00adca-560e-4e9d-9ca6-0a636e7e3e41",
+      "name": "Send Weekly Report",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "BetterSelf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_WEEKLY_INSIGHTS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Weekly_Insights"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "completion_rate": "={{ Math.round($('Fetch Weekly Logs').all().filter(r => r.json.fields.completion_status === 'Done').length / $('Fetch Weekly Logs').all().length * 100) }}",
+            "telegram_id": "YOUR_TELEGRAM_ID",
+            "week_start": "={{ $now.startOf('week').toISODate() }}",
+            "summary": "={{ $('Generate Weekly Report').first().json.choices[0].message.content.replace(/[*_`\\[\\]()]/g, '') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "telegram_id", "displayName": "telegram_id", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "week_start", "displayName": "week_start", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "dateTime", "readOnly": false, "removed": false},
+            {"id": "summary", "displayName": "summary", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "adjustments", "displayName": "adjustments", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "completion_rate", "displayName": "completion_rate", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "number", "readOnly": false, "removed": false}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {"typecast": true}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [1248, 0],
+      "id": "6b313b94-25e3-41ce-9e52-86d04ef9f8ae",
+      "name": "Save Weekly Report",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Sunday 8pm Trigger": {"main": [[{"node": "Fetch Weekly Logs", "type": "main", "index": 0}]]},
+    "Fetch Weekly Logs": {"main": [[{"node": "Combine Weekly Logs", "type": "main", "index": 0}]]},
+    "Combine Weekly Logs": {"main": [[{"node": "Fetch User Profile", "type": "main", "index": 0}]]},
+    "Fetch User Profile": {"main": [[{"node": "Generate Weekly Report", "type": "main", "index": 0}]]},
+    "Generate Weekly Report": {"main": [[{"node": "Send Weekly Report", "type": "main", "index": 0}]]},
+    "Send Weekly Report": {"main": [[{"node": "Save Weekly Report", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
